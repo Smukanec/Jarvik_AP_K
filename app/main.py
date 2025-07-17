@@ -1,7 +1,5 @@
 from flask import Flask, request, jsonify, send_from_directory
-from pathlib import Path
-import json
-from .memory import load_memory, save_record, save_memory
+from .memory import load_memory, save_record, update_record
 from .rag_engine import find_similar
 from .parser import parse_text
 
@@ -34,12 +32,9 @@ def action_plan():
     if similar is not None and score >= SIMILARITY_THRESHOLD:
         # Update existing record instead of creating a new one
         record['id'] = similar['id']
-        similar.update(record)
-        save_memory(user, memory)
-        record = similar
+        update_record(user, record['id'], record)
     else:
         save_record(user, record)
-        memory.append(record)
 
     return jsonify({'record': record, 'similar': similar, 'score': score})
 

@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from app.main import app
 from app.parser import parse_text
+from app import memory as memory_mod
 
 
 def test_action_plan_post():
@@ -46,7 +47,6 @@ def test_duplicate_detection(tmp_path):
     mem_dir = tmp_path / 'memory'
     os.makedirs(mem_dir / user)
     # patch memory directory in app.memory for test
-    from app import memory as memory_mod
     old_dir = memory_mod.MEMORY_DIR
     memory_mod.MEMORY_DIR = mem_dir
 
@@ -64,4 +64,73 @@ def test_duplicate_detection(tmp_path):
     assert memory[0]['cause'] == 'rust'
 
     # restore original directory
+    memory_mod.MEMORY_DIR = old_dir
+
+
+def test_memory_crud(tmp_path):
+    user = 'crud'
+    mem_dir = tmp_path / 'memory'
+    old_dir = memory_mod.MEMORY_DIR
+    memory_mod.MEMORY_DIR = mem_dir
+
+    record = {
+        'id': 'AP-001',
+        'traceability': 'T1',
+        'problem': 'p',
+        'cause': 'c',
+        'action': 'a',
+        'responsible': '',
+        'date': '',
+        'effectiveness': '',
+        'closed': False,
+    }
+    memory_mod.save_record(user, record)
+    records = memory_mod.load_memory(user)
+    assert len(records) == 1
+    assert records[0]['problem'] == 'p'
+
+    memory_mod.update_record(user, 'AP-001', {'problem': 'new'})
+    records = memory_mod.load_memory(user)
+    assert records[0]['problem'] == 'new'
+
+    memory_mod.delete_record(user, 'AP-001')
+    records = memory_mod.load_memory(user)
+    assert records == []
+
+    memory_mod.MEMORY_DIR = old_dir
+
+
+def test_concurrent_writes(tmp_path):
+    user = 'concurrent'
+    mem_dir = tmp_path / 'memory'
+    old_dir = memory_mod.MEMORY_DIR
+    memory_mod.MEMORY_DIR = mem_dir
+
+    import threading
+
+    def worker(i):
+        memory_mod.save_record(
+            user,
+            {
+                'id': f'AP-{i:03d}',
+                'traceability': 'T',
+                'problem': f'p{i}',
+                'cause': 'c',
+                'action': 'a',
+                'responsible': '',
+                'date': '',
+                'effectiveness': '',
+                'closed': False,
+            },
+        )
+
+    threads = [threading.Thread(target=worker, args=(i,)) for i in range(10)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    records = memory_mod.load_memory(user)
+    assert len(records) == 10
+
     memory_mod.MEMORY_DIR = old_dir
