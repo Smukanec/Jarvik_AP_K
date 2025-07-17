@@ -1,11 +1,13 @@
 from flask import Flask, request, jsonify, send_from_directory
 from pathlib import Path
 import json
-from .memory import load_memory, save_record
+from .memory import load_memory, save_record, save_memory
 from .rag_engine import find_similar
 from .parser import parse_text
 
 app = Flask(__name__, static_folder='../static')
+
+SIMILARITY_THRESHOLD = 0.8
 
 @app.route('/action_plan', methods=['POST'])
 def action_plan():
@@ -28,13 +30,18 @@ def action_plan():
         'closed': False
     }
 
-    similar = find_similar(record, memory)
-    if similar is not None:
-        # For simplicity, just append new record
-        pass
-    save_record(user, record)
-    memory.append(record)
-    return jsonify({'record': record, 'similar': similar})
+    similar, score = find_similar(record, memory)
+    if similar is not None and score >= SIMILARITY_THRESHOLD:
+        # Update existing record instead of creating a new one
+        record['id'] = similar['id']
+        similar.update(record)
+        save_memory(user, memory)
+        record = similar
+    else:
+        save_record(user, record)
+        memory.append(record)
+
+    return jsonify({'record': record, 'similar': similar, 'score': score})
 
 @app.route('/static/<path:path>')
 def send_static(path):

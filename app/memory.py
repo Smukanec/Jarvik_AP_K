@@ -25,3 +25,11 @@ def save_record(user: str, record: dict):
     path = get_memory_path(user)
     with open(path, 'a', encoding='utf-8') as f:
         f.write(json.dumps(record, ensure_ascii=False) + '\n')
+
+
+def save_memory(user: str, records: list):
+    """Rewrite the entire memory file with the provided records."""
+    path = get_memory_path(user)
+    with open(path, 'w', encoding='utf-8') as f:
+        for rec in records:
+            f.write(json.dumps(rec, ensure_ascii=False) + '\n')
