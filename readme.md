@@ -8,6 +8,10 @@ Zde je návrh souboru `README.md` pro tvou aplikaci **Akční plán**, zaměřen
 Tento modul slouží k automatizovanému vytváření a správě akčních plánů na základě volného textu. Textový vstup je analyzován, rozdělen na základní komponenty (traceabilita, problém, řešení apod.) a uložen do strukturované paměti. Modul využívá RAG (retrieval-augmented generation) pro práci s historickými záznamy a umožňuje uživateli interaktivně upravovat a exportovat plánované akce.
 
 ---
+## ⚙️ Instalace závislostí
+
+Před spuštěním testů je potřeba nainstalovat všechny nezbytné knihovny. Spusť `./setup.sh`, který vytvoří virtuální prostředí a nainstaluje balíčky z `requirements.txt`, nebo použij příkaz `pip install -r requirements.txt` ve vlastním prostředí. Tyto závislosti zahrnují **Flask** pro samotnou aplikaci a **pytest** pro běh testů.
+
 
 ## 🧱 Architektura
 
