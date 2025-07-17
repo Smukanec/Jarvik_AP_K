@@ -3,6 +3,7 @@ from pathlib import Path
 import json
 from .memory import load_memory, save_record
 from .rag_engine import find_similar
+from .parser import parse_text
 
 app = Flask(__name__, static_folder='../static')
 
@@ -13,14 +14,14 @@ def action_plan():
     user = data.get('user', 'default')
     memory = load_memory(user)
 
-    # simple parse: split into sentences for demo
-    parts = text.split('.')
+    # parse using the dedicated parser
+    sections = parse_text(text)
     record = {
         'id': f"AP-{len(memory)+1:03d}",
-        'traceability': parts[0].strip() if parts else '',
-        'problem': parts[1].strip() if len(parts) > 1 else '',
-        'cause': parts[2].strip() if len(parts) > 2 else '',
-        'action': parts[3].strip() if len(parts) > 3 else '',
+        'traceability': sections.get('traceability', ''),
+        'problem': sections.get('problem', ''),
+        'cause': sections.get('cause', ''),
+        'action': sections.get('action', ''),
         'responsible': '',
         'date': '',
         'effectiveness': '',
