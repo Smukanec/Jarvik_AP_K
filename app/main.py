@@ -3,6 +3,7 @@ from pathlib import Path
 import json
 from .memory import load_memory, save_record, save_memory
 from .rag_engine import find_similar
+from .embedder import embed
 from .parser import parse_text
 
 app = Flask(__name__, static_folder='../static')
@@ -27,7 +28,8 @@ def action_plan():
         'responsible': '',
         'date': '',
         'effectiveness': '',
-        'closed': False
+        'closed': False,
+        'embedding': embed(sections.get('problem', ''))
     }
 
     similar, score = find_similar(record, memory)
